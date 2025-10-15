@@ -5,7 +5,7 @@ variable "resource_group_name" {
 
 variable "location" {
   type    = string
-  default = "eastus"
+  default = "Southeast Asia"
 }
 
 variable "vnet_name" {
@@ -40,20 +40,20 @@ variable "nsg_name" {
 
 variable "storage_account_name" {
   type    = string
-  default = "iacstorageacctxxx"
+  default = "iacsaunique1"
 }
 
 variable "app_service_plan_name" {
   type    = string
-  default = "iac-app-plan"
+  default = "iac-asp-unique1"
 }
 
 variable "web_app_name" {
   type    = string
-  default = "iac-webapp-unique"
+  default = "iac-webapp-unique1"
 }
 
 variable "key_vault_name" {
   type    = string
-  default = "iac-keyvault-unique"
+  default = "iac-kv-unique1-test"
 }
