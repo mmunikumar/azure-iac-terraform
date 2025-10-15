@@ -1,0 +1,43 @@
+name: Integration Test - Verify Private Access
+
+# on:
+#   workflow_run:
+#     workflows: ["Terraform Deploy"]
+#     types:
+#       - completed
+
+jobs:
+  verify_private_access:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+
+      - name: Setup Azure CLI
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.50.0
+
+      - name: Run integration test vm inside VNet and curl webapp
+        env:
+          RG: ${{ secrets.TEST_RG_NAME }}
+          VNET: ${{ secrets.TEST_VNET_NAME }}
+          SUBNET: ${{ secrets.TEST_SUBNET_NAME }}
+          WEBAPP_HOSTNAME: ${{ secrets.WEBAPP_HOSTNAME }}
+        run: |
+          # NOTE: This job expects the repo owner to provide TEST_RG_NAME, TEST_VNET_NAME, TEST_SUBNET_NAME, WEBAPP_HOSTNAME as secrets.
+          # Create a small test VM in the VNet without public IP, run curl from it, then destroy.
+          az vm create -g "$RG" -n test-vm-iac --image UbuntuLTS --vnet-name "$VNET" --subnet "$SUBNET" --generate-ssh-keys --admin-username azureuser --public-ip-address ""
+          echo "Sleeping 20s for VM to initialize..."
+          sleep 20
+          az vm run-command invoke -g "$RG" -n test-vm-iac --command-id RunShellScript --scripts "curl -sS -o /dev/null -w '%{http_code}' https://${WEBAPP_HOSTNAME}" > result.txt
+          cat result.txt
+          az vm delete -g "$RG" -n test-vm-iac --yes
