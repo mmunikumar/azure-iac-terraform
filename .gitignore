@@ -1,0 +1,9 @@
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
+.DS_Store
+.terraform
+.terraform/
+.terraform/
+.gitattributes
+.terraform/
